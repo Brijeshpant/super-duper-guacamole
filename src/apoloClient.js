@@ -34,3 +34,22 @@ export const createProduct =  (product) => {
       variables: { product: { ...product, price: parseFloat(product.price)} }
     })
 }
+const GET_PRODUCT = gql `
+  query ($id: String) {
+  product(id: $id){
+    name,
+    category,
+    brand,
+    price
+  }
+}
+`
+
+export const getProduct =  (id) => {
+  console.log('calllinnnn')
+  return client
+    .query({
+      query: GET_PRODUCT,
+      variables: { id }
+    })
+}
