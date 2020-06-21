@@ -2,20 +2,35 @@ import React, { useState } from "react";
 import { getProduct } from "./apoloClient"
 import style from './styles/app.module.css'
 import Modal from 'react-bootstrap/Modal'
+import {Error} from './error'
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export const SearchBar = () => {
     const [searchKey, setSearchKey] = useState('')
+    const [errorMessage, setErrorMessage] = useState({})
+
     const onChange = (event) => {
         setSearchKey(event.target.value)
     }
     const [product, setProduct] = useState({})
     const handleChange = async () => {
-        const response = await getProduct(searchKey)
-        console.log('response', response)
-        setProduct(response.data.product)
-        setLgShow(true)
-        Promise.resolve()
+        try {
+            const response = await getProduct(searchKey)
+            console.log('response', response)   
+            setProduct(response.data.product)
+            setLgShow(true)
+            setErrorMessage({})
+        }catch(error){
+            console.log(JSON.stringify(error))
+            if (error.graphQLErrors.length > 0){
+                setErrorMessage(error.graphQLErrors[0]) 
+            }
+            else{
+                setErrorMessage(error.networkError.result.errors[0])
+            }
+            setLgShow(true)
+        }
+        
     }
     const [lgShow, setLgShow] = useState(false);
 
@@ -32,6 +47,8 @@ export const SearchBar = () => {
           </Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                {errorMessage && errorMessage.message ? <Error error={errorMessage} /> : null}
+
                 {product && product.name ?
                     <table className={style.contantTable}>
                         <tbody>

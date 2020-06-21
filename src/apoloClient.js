@@ -1,9 +1,18 @@
-import { gql, ApolloClient, InMemoryCache, HttpLink } from 'apollo-boost';
+import { gql, ApolloClient, ApolloLink, InMemoryCache, HttpLink } from 'apollo-boost';
 
 const httpLink = new HttpLink({ uri: 'http://localhost:3000/graphql' });
 
+const authLink = new ApolloLink((operation, forward) => {
+  operation.setContext({
+    headers: {
+      "authorization": "user2"
+    }
+  })
+  return forward(operation)
+
+})
 const client = new ApolloClient({
-  link: httpLink,
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache({ addTypename: false })
 });
 
@@ -21,7 +30,7 @@ export const getProducts = () =>{
 
 const MUTATION_QUERY = gql `
 mutation($product: ProductInput) {
-  createProduct(input: $product){
+  createProduct(product: $product){
     name,
     id
   }
@@ -46,7 +55,6 @@ const GET_PRODUCT = gql `
 `
 
 export const getProduct =  (id) => {
-  console.log('calllinnnn')
   return client
     .query({
       query: GET_PRODUCT,
